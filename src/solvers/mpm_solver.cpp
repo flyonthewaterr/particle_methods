@@ -83,9 +83,10 @@ void MPMSolver::step(ParticleSystem& system, const SimulationConfig& config, int
   const float h = std::max(config.mpm_grid_spacing, 1.0e-4F);
   const float inv_h = 1.0F / h;
   const float min_mass = 1.0e-7F;
-  const float poisson = std::clamp(config.mpm_poissons_ratio, 0.0F, 0.49F);
+  const float poisson = std::clamp(config.mpm_poissons_ratio, 0.0F, 0.48F);
   const float young = std::max(config.mpm_youngs_modulus, 0.0F);
-  const float lambda = (young * poisson) / ((1.0F + poisson) * (1.0F - 2.0F * poisson));
+  const float lambda_denom = std::max((1.0F + poisson) * (1.0F - 2.0F * poisson), 1.0e-6F);
+  const float lambda = (young * poisson) / lambda_denom;
   const float mu = young / (2.0F * (1.0F + poisson));
 
   for (int substep = 0; substep < clamped_substeps; ++substep) {

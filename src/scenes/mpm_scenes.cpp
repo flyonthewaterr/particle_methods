@@ -30,7 +30,7 @@ std::string_view to_string(MPMBenchmarkScene scene) {
       return "falling_block";
   }
 
-  return "falling_block";
+  throw std::invalid_argument("Unknown MPM scene enum value.");
 }
 
 void initialize_mpm_scene(
