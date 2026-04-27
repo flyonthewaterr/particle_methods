@@ -165,7 +165,6 @@ void MPMSolver::step(ParticleSystem& system, const SimulationConfig& config, int
     }
 
     for (std::size_t p_idx = 0; p_idx < particles.size(); ++p_idx) {
-      const auto& particle = particles[p_idx];
       const auto& particle_state = particle_state_[p_idx];
       const float trace = particle_state.exx + particle_state.eyy;
       const float sxx = lambda * trace + 2.0F * mu * particle_state.exx;
