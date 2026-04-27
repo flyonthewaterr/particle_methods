@@ -10,7 +10,7 @@ Current focus:
 Methods planned:
 - DEM (Discrete Element Method)
 - SPH (Smoothed Particle Hydrodynamics)
-- MPM (Material Point Method)
+- MPM (Material Point Method, concise CPU baseline available)
 
 ## Current Status
 
@@ -20,9 +20,13 @@ Methods planned:
 	- uniform-grid neighbor search (cell list)
 	- configurable boundaries (floor, walls, box)
 	- deterministic seeded benchmark scene initialization
+- MPM phase-3 concise CPU baseline is implemented:
+	- background grid transfer loop (P2G -> grid update -> G2P)
+	- linear-elastic stress update with configurable material parameters
+	- deterministic falling-block benchmark scene initialization
 - CUDA backend path exists for DEM stepping.
-- Python binding provides 2D DEM APIs, including scene runners.
-- SPH and MPM classes are scaffolded for upcoming implementation.
+- Python binding provides 2D DEM APIs and an MPM scene runner.
+- SPH remains scaffolded for upcoming implementation.
 
 ## Repository Layout
 
@@ -95,6 +99,15 @@ scene_positions = particle_methods.run_dem_scene(
 	substeps=2,
 )
 print(len(scene_positions))
+
+mpm_positions = particle_methods.run_mpm_scene(
+	scene_name="falling_block",
+	particle_count=196,
+	steps=250,
+	seed=7,
+	substeps=1,
+)
+print(len(mpm_positions))
 ```
 
 ## Practical Roadmap

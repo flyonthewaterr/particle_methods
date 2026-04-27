@@ -20,6 +20,7 @@ add_library(
   particle_methods
   src/core/particle_system.cpp
   src/scenes/dem_scenes.cpp
+  src/scenes/mpm_scenes.cpp
   src/solvers/dem_solver.cpp
   src/solvers/sph_solver.cpp
   src/solvers/mpm_solver.cpp)
@@ -138,5 +139,12 @@ if(PM_BUILD_TESTS)
 
     target_link_libraries(dem_phase1_tests PRIVATE particle_methods)
     add_test(NAME dem_phase1_tests COMMAND dem_phase1_tests)
+
+    add_executable(
+      mpm_phase3_tests
+      tests/mpm_phase3_tests.cpp)
+
+    target_link_libraries(mpm_phase3_tests PRIVATE particle_methods)
+    add_test(NAME mpm_phase3_tests COMMAND mpm_phase3_tests)
   endif()
 endif()

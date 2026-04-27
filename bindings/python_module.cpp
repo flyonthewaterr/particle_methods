@@ -11,7 +11,9 @@
 
 #include "particle_methods/core/particle_system.hpp"
 #include "particle_methods/scenes/dem_scenes.hpp"
+#include "particle_methods/scenes/mpm_scenes.hpp"
 #include "particle_methods/solvers/dem_solver.hpp"
+#include "particle_methods/solvers/mpm_solver.hpp"
 
 namespace py = pybind11;
 
@@ -120,6 +122,24 @@ std::vector<std::array<float, 2>> run_dem_scene(
   return gather_positions(system);
 }
 
+std::vector<std::array<float, 2>> run_mpm_scene(
+    const std::string& scene_name,
+    int particle_count,
+    int steps,
+    std::uint32_t seed,
+    int substeps) {
+  pm::ParticleSystem system;
+  pm::SimulationConfig config;
+  pm::scenes::initialize_mpm_scene(system, config, pm::scenes::parse_mpm_scene(scene_name), particle_count, seed);
+
+  pm::MPMSolver solver;
+  for (int s = 0; s < std::max(steps, 1); ++s) {
+    solver.step(system, config, std::max(substeps, 1));
+  }
+
+  return gather_positions(system);
+}
+
 }  // namespace
 
 PYBIND11_MODULE(_core, m) {
@@ -140,7 +160,11 @@ PYBIND11_MODULE(_core, m) {
         py::arg("dt") = 0.004F, py::arg("use_cuda") = false,
         "Run a baseline 2D falling-particles DEM simulation and return [[x, y], ...] positions.");
 
-      m.def("run_dem_scene", &run_dem_scene, py::arg("scene_name") = "pile_formation", py::arg("particle_count") = 200,
-        py::arg("steps") = 400, py::arg("seed") = 42U, py::arg("use_cuda") = false, py::arg("substeps") = 2,
-        "Run a deterministic DEM benchmark scene (single_bounce, pile_formation, hopper). ");
+  m.def("run_dem_scene", &run_dem_scene, py::arg("scene_name") = "pile_formation", py::arg("particle_count") = 200,
+         py::arg("steps") = 400, py::arg("seed") = 42U, py::arg("use_cuda") = false, py::arg("substeps") = 2,
+         "Run a deterministic DEM benchmark scene (single_bounce, pile_formation, hopper). ");
+
+  m.def("run_mpm_scene", &run_mpm_scene, py::arg("scene_name") = "falling_block", py::arg("particle_count") = 196,
+        py::arg("steps") = 300, py::arg("seed") = 42U, py::arg("substeps") = 1,
+        "Run a concise MPM benchmark scene (falling_block).");
 }

@@ -43,6 +43,12 @@ struct SimulationConfig {
   float dem_tangential_friction {0.45F};
   float dem_tangential_damping {30.0F};
   float dem_contact_epsilon {1.0e-6F};
+
+  // Phase-3 MPM baseline parameters.
+  float mpm_grid_spacing {0.04F};
+  float mpm_reference_density {1000.0F};
+  float mpm_youngs_modulus {2.5e4F};
+  float mpm_poissons_ratio {0.2F};
 };
 
 }  // namespace pm

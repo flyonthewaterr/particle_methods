@@ -75,6 +75,8 @@ Exit criteria:
 
 Goal: add grid-particle hybrid simulation in 2D.
 
+Status: concise CPU baseline in progress (P2G/grid-update/G2P and falling-block scene available)
+
 Tasks:
 - Implement background grid data structures.
 - Implement particle-to-grid (P2G), grid update, grid-to-particle (G2P).
