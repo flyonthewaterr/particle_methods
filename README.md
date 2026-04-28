@@ -22,7 +22,8 @@ Methods planned:
 	- deterministic seeded benchmark scene initialization
 - CUDA backend path exists for DEM stepping.
 - Python binding provides 2D DEM APIs, including scene runners.
-- SPH and MPM classes are scaffolded for upcoming implementation.
+- SPH 2D CPU baseline implemented (poly6/spiky kernels, pressure/viscosity, boundary force, CFL limiter).
+- MPM classes are scaffolded for upcoming implementation.
 
 ## Repository Layout
 
@@ -95,9 +96,24 @@ scene_positions = particle_methods.run_dem_scene(
 	substeps=2,
 )
 print(len(scene_positions))
+
+sph_positions = particle_methods.run_sph_scene(
+	scene_name="dam_break",
+	particle_count=300,
+	steps=200,
+	seed=7,
+	substeps=1,
+)
+print(len(sph_positions))
 ```
 
+Notes:
+- SPH uses a weakly-compressible pressure model with penalty-style boundaries.
+- Stability is sensitive to smoothing length and timestep; see `SimulationConfig` SPH parameters.
+
 ## Practical Roadmap
+
+The SPH baseline follows kernel choices popularized by SPlisHSPlasH: https://github.com/InteractiveComputerGraphics/SPlisHSPlasH
 
 See `docs/ROADMAP.md` for the phased implementation plan and exit criteria.
 

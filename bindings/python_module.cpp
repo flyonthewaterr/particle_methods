@@ -11,7 +11,9 @@
 
 #include "particle_methods/core/particle_system.hpp"
 #include "particle_methods/scenes/dem_scenes.hpp"
+#include "particle_methods/scenes/sph_scenes.hpp"
 #include "particle_methods/solvers/dem_solver.hpp"
+#include "particle_methods/solvers/sph_solver.hpp"
 
 namespace py = pybind11;
 
@@ -94,6 +96,51 @@ class FallingParticles2D {
   pm::DEMSolver solver_;
 };
 
+class SPHFluid2D {
+ public:
+  SPHFluid2D(const std::string& scene_name, int particle_count, std::uint32_t seed) {
+    reset_scene(scene_name, particle_count, seed);
+  }
+
+  void step(int steps, int substeps) {
+    const int clamped_steps = std::max(steps, 1);
+    const int clamped_substeps = std::max(substeps, 1);
+    for (int i = 0; i < clamped_steps; ++i) {
+      solver_.step(system_, config_, clamped_substeps);
+    }
+  }
+
+  void set_dt(float dt) {
+    config_.dt = dt;
+  }
+
+  void set_gravity(float gravity_y) {
+    config_.gravity_y = gravity_y;
+  }
+
+  [[nodiscard]] std::vector<std::array<float, 2>> positions() const {
+    return gather_positions(system_);
+  }
+
+  [[nodiscard]] py::ssize_t particle_count() const {
+    return static_cast<py::ssize_t>(system_.size());
+  }
+
+  void reset_scene(const std::string& scene_name, int particle_count, std::uint32_t seed = 42U) {
+    if (particle_count <= 0) {
+      throw std::invalid_argument("particle_count must be > 0");
+    }
+
+    const auto scene = pm::scenes::parse_sph_scene(scene_name);
+    pm::scenes::initialize_sph_scene(system_, config_, scene, particle_count, seed);
+  }
+
+ private:
+  pm::ParticleSystem system_;
+  pm::SimulationConfig config_;
+  pm::SPHSolver solver_;
+};
+
 std::vector<std::array<float, 2>> run_falling_particles(int particle_count, int steps, float dt, bool use_cuda) {
   FallingParticles2D simulation(particle_count, 0.06F, 0.2F, use_cuda);
   simulation.set_dt(dt);
@@ -120,6 +167,24 @@ std::vector<std::array<float, 2>> run_dem_scene(
   return gather_positions(system);
 }
 
+std::vector<std::array<float, 2>> run_sph_scene(
+    const std::string& scene_name,
+    int particle_count,
+    int steps,
+    std::uint32_t seed,
+    int substeps) {
+  pm::ParticleSystem system;
+  pm::SimulationConfig config;
+  pm::scenes::initialize_sph_scene(system, config, pm::scenes::parse_sph_scene(scene_name), particle_count, seed);
+
+  pm::SPHSolver solver;
+  for (int s = 0; s < std::max(steps, 1); ++s) {
+    solver.step(system, config, std::max(substeps, 1));
+  }
+
+  return gather_positions(system);
+}
+
 }  // namespace
 
 PYBIND11_MODULE(_core, m) {
@@ -136,11 +201,26 @@ PYBIND11_MODULE(_core, m) {
       .def("positions", &FallingParticles2D::positions)
       .def_property_readonly("particle_count", &FallingParticles2D::particle_count);
 
+  py::class_<SPHFluid2D>(m, "SPHFluid2D")
+      .def(py::init<const std::string&, int, std::uint32_t>(), py::arg("scene_name") = "dam_break",
+           py::arg("particle_count") = 300, py::arg("seed") = 42U)
+      .def("step", &SPHFluid2D::step, py::arg("steps") = 1, py::arg("substeps") = 1)
+      .def("set_dt", &SPHFluid2D::set_dt, py::arg("dt"))
+      .def("set_gravity", &SPHFluid2D::set_gravity, py::arg("gravity_y"))
+      .def("reset_scene", &SPHFluid2D::reset_scene, py::arg("scene_name"), py::arg("particle_count"),
+           py::arg("seed") = 42U)
+      .def("positions", &SPHFluid2D::positions)
+      .def_property_readonly("particle_count", &SPHFluid2D::particle_count);
+
   m.def("run_falling_particles", &run_falling_particles, py::arg("particle_count") = 200, py::arg("steps") = 400,
         py::arg("dt") = 0.004F, py::arg("use_cuda") = false,
         "Run a baseline 2D falling-particles DEM simulation and return [[x, y], ...] positions.");
 
-      m.def("run_dem_scene", &run_dem_scene, py::arg("scene_name") = "pile_formation", py::arg("particle_count") = 200,
+  m.def("run_dem_scene", &run_dem_scene, py::arg("scene_name") = "pile_formation", py::arg("particle_count") = 200,
         py::arg("steps") = 400, py::arg("seed") = 42U, py::arg("use_cuda") = false, py::arg("substeps") = 2,
         "Run a deterministic DEM benchmark scene (single_bounce, pile_formation, hopper). ");
+
+  m.def("run_sph_scene", &run_sph_scene, py::arg("scene_name") = "dam_break", py::arg("particle_count") = 300,
+        py::arg("steps") = 300, py::arg("seed") = 42U, py::arg("substeps") = 1,
+        "Run a baseline 2D SPH scene (dam_break, droplet). ");
 }

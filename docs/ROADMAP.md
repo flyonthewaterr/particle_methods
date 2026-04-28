@@ -55,6 +55,8 @@ Exit criteria:
 
 Goal: add incompressible-ish fluid baseline in 2D.
 
+Status: CPU baseline implemented (CUDA tasks pending).
+
 Tasks:
 - Implement kernels (poly6/spiky-like) and density/pressure estimation.
 - Implement pressure and viscosity forces.

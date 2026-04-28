@@ -43,6 +43,16 @@ struct SimulationConfig {
   float dem_tangential_friction {0.45F};
   float dem_tangential_damping {30.0F};
   float dem_contact_epsilon {1.0e-6F};
+
+  // Phase-2 SPH baseline parameters.
+  float sph_rest_density {1000.0F};
+  float sph_smoothing_length {0.08F};
+  float sph_pressure_stiffness {2000.0F};
+  float sph_viscosity {0.1F};
+  float sph_sound_speed {20.0F};
+  float sph_cfl_factor {0.4F};
+  float sph_boundary_stiffness {3000.0F};
+  float sph_boundary_damping {25.0F};
 };
 
 }  // namespace pm
